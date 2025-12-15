@@ -33,31 +33,33 @@ function toggleSidebar() {
 function showSection(section) {
     // Ocultar todas las secciones
     document.querySelectorAll('.content-section').forEach(sec => {
-        sec.classList.remove('active');
+        sec.style.display = 'none';
     });
     
     // Mostrar la sección seleccionada
-    document.getElementById(section + '-section').classList.add('active');
+    const selectedSection = document.getElementById(section + '-section');
+    if (selectedSection) {
+        selectedSection.style.display = 'block';
+    }
     
     // Actualizar título
     const titles = {
-        'inicio': 'Dashboard',
-        'proyectos': 'Mis Proyectos',
-        'agregar': 'Agregar Proyecto',
-        'perfil': 'Mi Perfil',
-        'configuracion': 'Configuración'
+        'inicio': '<i class="fas fa-chart-line"></i> Dashboard',
+        'proyectos': '<i class="fas fa-briefcase"></i> Mis Proyectos',
+        'agregar': '<i class="fas fa-plus-circle"></i> Agregar Proyecto',
+        'perfil': '<i class="fas fa-user-circle"></i> Mi Perfil',
+        'configuracion': '<i class="fas fa-cog"></i> Configuración'
     };
-    document.getElementById('pageTitle').textContent = titles[section];
+    document.getElementById('pageTitle').innerHTML = titles[section];
     
     // Actualizar active en sidebar
-    document.querySelectorAll('.sidebar-nav a').forEach(link => {
+    document.querySelectorAll('.sidebar .nav-link').forEach(link => {
         link.classList.remove('active');
     });
-    event.target.classList.add('active');
     
-    // Si es móvil, cerrar sidebar
-    if (window.innerWidth <= 768) {
-        toggleSidebar();
+    // Si el evento existe, marcar el link activo
+    if (window.event && window.event.target) {
+        window.event.target.classList.add('active');
     }
 }
 
@@ -75,29 +77,32 @@ function cargarProyectos() {
     const lista = document.getElementById('proyectosList');
     
     if (proyectos.length === 0) {
-        lista.innerHTML = '<p style="text-align:center; color:#666;">No tienes proyectos aún. ¡Agrega tu primer proyecto!</p>';
+        lista.innerHTML = '<div class="col-12"><p style="text-align:center; color:#666;" class="lead">No tienes proyectos aún. ¡Agrega tu primer proyecto!</p></div>';
         return;
     }
     
     lista.innerHTML = '';
     proyectos.forEach((proyecto, index) => {
-        const card = document.createElement('div');
-        card.className = 'project-card';
-        card.innerHTML = `
-            <img src="${proyecto.imagen}" alt="${proyecto.titulo}" onerror="this.src='https://via.placeholder.com/300x180/0aa3a3/ffffff?text=Proyecto'">
-            <div class="project-card-content">
-                <h3>${proyecto.titulo}</h3>
-                <p>${proyecto.descripcion}</p>
-                <div class="project-tags">
-                    ${proyecto.tags.map(tag => `<span class="project-tag">${tag}</span>`).join('')}
-                </div>
-                <div class="project-actions">
-                    <button class="btn-edit" onclick="editarProyecto(${index})">✏️ Editar</button>
-                    <button class="btn-delete" onclick="eliminarProyecto(${index})">🗑️ Eliminar</button>
+        const col = document.createElement('div');
+        col.className = 'col-md-6 col-lg-4';
+        col.innerHTML = `
+            <div class="card h-100">
+                <img src="${proyecto.imagen}" class="card-img-top" alt="${proyecto.titulo}" onerror="this.src='https://via.placeholder.com/400x300/7cbd3c/ffffff?text=${encodeURIComponent(proyecto.titulo)}'">
+                <div class="card-body">
+                    <h5 class="card-title">${proyecto.titulo}</h5>
+                    <p class="card-text">${proyecto.descripcion}</p>
+                    <div class="mb-3">
+                        ${proyecto.tags.map(tag => `<span class="badge bg-primary me-1">${tag}</span>`).join('')}
+                    </div>
+                    ${proyecto.link && proyecto.link !== '#' ? `<a href="${proyecto.link}" target="_blank" class="btn btn-sm btn-info mb-2 w-100"><i class="fas fa-link"></i> Ver Proyecto</a>` : ''}
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-success flex-fill" onclick="editarProyecto(${index})"><i class="fas fa-edit"></i> Editar</button>
+                        <button class="btn btn-sm btn-danger flex-fill" onclick="eliminarProyecto(${index})"><i class="fas fa-trash"></i> Eliminar</button>
+                    </div>
                 </div>
             </div>
         `;
-        lista.appendChild(card);
+        lista.appendChild(col);
     });
 }
 
@@ -142,7 +147,10 @@ document.getElementById('addProjectForm').addEventListener('submit', function(e)
         if (editIndex !== undefined) {
             proyectos.splice(parseInt(editIndex), 0, proyecto);
             delete form.dataset.editIndex;
-            document.querySelector('.btn-submit').textContent = 'Agregar Proyecto';
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fas fa-plus-circle"></i> Agregar Proyecto';
+            }
             alert('¡Proyecto actualizado exitosamente!');
         } else {
             // Agregar nuevo proyecto
@@ -221,7 +229,10 @@ function editarProyecto(index) {
     showSection('agregar');
     
     // Cambiar texto del botón
-    document.querySelector('.btn-submit').textContent = 'Actualizar Proyecto';
+    const submitBtn = document.querySelector('#addProjectForm button[type="submit"]');
+    if (submitBtn) {
+        submitBtn.innerHTML = '<i class="fas fa-save"></i> Actualizar Proyecto';
+    }
     
     alert('Modifica los datos y guarda el proyecto. La imagen actual se mantendrá si no seleccionas una nueva.');
 }
